@@ -1,43 +1,50 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Task } from './entities/task.entity'
+import { PrismaService } from '../prisma/prisma.service';
+import { Task } from '@prisma/client';
 
 @Injectable()
 export class TasksService {
-	private tasks: Task[] = [];
+	constructor(private prisma: PrismaService) { }
 
-	create(createTaskDto: CreateTaskDto) {
-		const newTask: Task = {
-			id: Math.random().toString(36).substring(2, 9),
-			...createTaskDto,
-			status: 'PENDING',
-		}
-		this.tasks.push(newTask);
-		return (newTask);
+	async create(createTaskDto: CreateTaskDto): Promise<Task> {
+		const id = Math.random().toString(36).substring(2, 9);
+		return this.prisma.task.create({
+			data: {
+				id,
+				...createTaskDto,
+			},
+		});
 	}
 
-	findAll(): Task[] {
-		return (this.tasks)
+	async findAll(): Promise<Task[]> {
+		return this.prisma.task.findMany();
 	}
 
-	findOne(id: string): Task {
-		const task = this.tasks.find((task) => task.id === id);
-		if (!task)
+	async findOne(id: string): Promise<Task> {
+		const task = await this.prisma.task.findUnique({
+			where: { id },
+		});
+		if (!task) {
 			throw new NotFoundException(`The task ${id} is not found.`);
-		return (task);
+		}
+		return task;
 	}
 
-	update(id: string, updateTaskDto: UpdateTaskDto): Task {
-		const task = this.findOne(id);
-		const updated = { ...task, ...updateTaskDto };
-		this.tasks = this.tasks.map((t) => t.id === id ? updated : t);
-		return (updated);
+	async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
+		await this.findOne(id);
+		return this.prisma.task.update({
+			where: { id },
+			data: updateTaskDto,
+		});
 	}
 
-	remove(id: string): { message: string } {
-		const index = this.tasks.findIndex((task) => task.id === id);
-		this.tasks.splice(index, 1);
-		return ({ message: `The task ${id} was succesfully deleted.` });
+	async remove(id: string): Promise<{ message: string }> {
+		await this.findOne(id);
+		await this.prisma.task.delete({
+			where: { id },
+		});
+		return { message: `The task ${id} was successfully deleted.` };
 	}
 }
