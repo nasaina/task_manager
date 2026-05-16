@@ -36,8 +36,8 @@ export class TasksService {
 	}
 
 	remove(id: string): { message: string } {
-		this.findOne(id);
-		this.tasks = this.tasks.filter((task) => task.id === id);
+		const index = this.tasks.findIndex((task) => task.id === id);
+		this.tasks.splice(index, 1);
 		return ({ message: `The task ${id} was succesfully deleted.` });
 	}
 }
