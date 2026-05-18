@@ -3,7 +3,8 @@ dist
 .env
 Dockerfile
 docker-compose.yml
-.git
+.git/
+.github/
 .gitignore
 README.md
 PRISMA_SETUP.md

@@ -5,4 +5,4 @@ echo "Running Prisma db push..."
 npx prisma db push
 
 echo "Starting application..."
-exec node dist/src/main
+exec node dist/main
