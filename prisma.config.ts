@@ -2,11 +2,24 @@
 // npm install --save-dev prisma dotenv
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
+import fs from "fs";
+import path from "path";
+
+const candidates = ["prisma/schema.prisma", "src/prisma/schema.prisma"];
+const found = candidates.map(p => path.resolve(process.cwd(), p)).find(p => fs.existsSync(p));
+if (!found) {
+	throw new Error(
+		`Prisma schema not found. Searched: ${candidates.join(", ")}`,
+	);
+}
+
+const schemaPath = found;
+const migrationsPath = path.join(path.dirname(schemaPath), "migrations");
 
 export default defineConfig({
-	schema: "prisma/schema.prisma",
+	schema: schemaPath,
 	migrations: {
-		path: "prisma/migrations",
+		path: migrationsPath,
 	},
 	datasource: {
 		url: process.env["DATABASE_URL"],
